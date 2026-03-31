@@ -8,13 +8,6 @@ const app = new App({
   appToken: process.env.SLACK_APP_TOKEN,
 });
 
-// Team member Slack IDs
-const TEAM = {
-  fren:  "U0AEE3BAJAK",
-  james: "U08QAS6EMUM",
-  jb:    "U0888KTTC91",
-};
-
 const NOTION_LINK =
   "https://www.notion.so/hireoverseas/Time-In-Out-Policy-Step-by-Step-Guide-2aeeb907ec1e801282d5fc463ac439b1";
 
@@ -45,10 +38,9 @@ app.event("member_joined_channel", async ({ event, client, logger }) => {
 
   try {
     await client.chat.postMessage({
-      channel: userId, // DM directly to the new user
-      text: `Welcome to Hire Overseas, <@${userId}>! 🎉`, // fallback text
+      channel: userId,
+      text: `Welcome to Hire Overseas, <@${userId}>! 🎉`,
       blocks: [
-        // ── Header banner ──────────────────────────────────────
         {
           type: "header",
           text: {
@@ -57,8 +49,6 @@ app.event("member_joined_channel", async ({ event, client, logger }) => {
             emoji: true,
           },
         },
-
-        // ── Welcome message ─────────────────────────────────────
         {
           type: "section",
           text: {
@@ -66,10 +56,7 @@ app.event("member_joined_channel", async ({ event, client, logger }) => {
             text: `Hey there, <@${userId}>! 👋\n\nWelcome to the *Hire Overseas* team! We're *really* excited to have you on board and can't wait to see the amazing things you'll bring to the table. You're going to fit right in. 🙌`,
           },
         },
-
         { type: "divider" },
-
-        // ── Key people ──────────────────────────────────────────
         {
           type: "section",
           text: {
@@ -81,27 +68,24 @@ app.event("member_joined_channel", async ({ event, client, logger }) => {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `🎯 *<@${TEAM.fren}> — Head of Recruitment*\nGot referrals or questions about the hiring process? She's your go-to!`,
+            text: `🎯 *Fren Sagum — Head of Recruitment*\nGot referrals or questions about the hiring process? She's your go-to!`,
           },
         },
         {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `🤝 *<@${TEAM.james}> — Head of Client Management*\nAll things client — coordination, communication, feedback. He's got it covered.`,
+            text: `🤝 *James G — Head of Client Management*\nAll things client — coordination, communication, feedback. He's got it covered.`,
           },
         },
         {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `⚙️ *<@${TEAM.jb}> — Head of Operations*\nDay-to-day support, coaching, issues, leave approvals — basically your operations lifeline.`,
+            text: `⚙️ *JB — Head of Operations*\nDay-to-day support, coaching, issues, leave approvals — basically your operations lifeline.`,
           },
         },
-
         { type: "divider" },
-
-        // ── Notion link ─────────────────────────────────────────
         {
           type: "section",
           text: {
@@ -109,10 +93,7 @@ app.event("member_joined_channel", async ({ event, client, logger }) => {
             text: `📖 *Before you dive in, give this a read:*\n<${NOTION_LINK}|⏰ Time In/Out Policy — Step-by-Step Guide>\nIt'll take 5 minutes and save you a lot of questions later. Promise!`,
           },
         },
-
         { type: "divider" },
-
-        // ── Footer ──────────────────────────────────────────────
         {
           type: "context",
           elements: [
