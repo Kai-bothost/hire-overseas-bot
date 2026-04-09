@@ -1,5 +1,6 @@
 const { App } = require("@slack/bolt");
 require("dotenv").config();
+const http = require("http");
 
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
@@ -11,7 +12,6 @@ const app = new App({
 const NOTION_LINK =
   "https://www.notion.so/hireoverseas/Time-In-Out-Policy-Step-by-Step-Guide-2aeeb907ec1e801282d5fc463ac439b1";
 
-// Fun rotating openers
 const OPENERS = [
   "🎉 A new legend has entered the chat!",
   "🚀 Houston, we have a new teammate!",
@@ -27,7 +27,6 @@ function randomOpener() {
 app.event("member_joined_channel", async ({ event, client, logger }) => {
   const { user: userId } = event;
 
-  // Skip bots
   try {
     const info = await client.users.info({ user: userId });
     if (info.user.is_bot) return;
@@ -43,17 +42,13 @@ app.event("member_joined_channel", async ({ event, client, logger }) => {
       blocks: [
         {
           type: "header",
-          text: {
-            type: "plain_text",
-            text: randomOpener(),
-            emoji: true,
-          },
+          text: { type: "plain_text", text: randomOpener(), emoji: true },
         },
         {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `Hey there, <@${userId}>! 👋\n\nWelcome to the *Hire Overseas* team! We're *really* excited to have you on board and can't wait to see the amazing things you'll bring to the table. You're going to fit right in. 🙌`,
+            text: `Hey there, <@${userId}>! 👋\n\nWelcome to the *Hire Overseas* team! We're *really* excited to have you on board and can't wait to see the amazing things you'll bring to the table. 🙌`,
           },
         },
         { type: "divider" },
@@ -68,21 +63,7 @@ app.event("member_joined_channel", async ({ event, client, logger }) => {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `🎯 *Fren Sagum — Head of Recruitment*\nGot referrals or questions about the hiring process? She's your go-to!`,
-          },
-        },
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `🤝 *James G — Head of Client Management*\nAll things client — coordination, communication, feedback. He's got it covered.`,
-          },
-        },
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `⚙️ *JB — Head of Operations*\nDay-to-day support, coaching, issues, leave approvals — basically your operations lifeline.`,
+            text: `🎯 *Fren Sagum — Head of Recruitment*\nGot referrals or questions about the hiring process? She's your go-to!\n\n🤝 *James G — Head of Client Management*\nAnything client-related — coordination, communication, feedback — goes through him.\n\n⚙️ *JB — Head of Operations*\nYour go-to for day-to-day support, coaching, issues, or leave approvals.`,
           },
         },
         { type: "divider" },
@@ -90,29 +71,34 @@ app.event("member_joined_channel", async ({ event, client, logger }) => {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `📖 *Before you dive in, give this a read:*\n<${NOTION_LINK}|⏰ Time In/Out Policy — Step-by-Step Guide>\nIt'll take 5 minutes and save you a lot of questions later. Promise!`,
+            text: `📖 *Please read this important policy guide:*\n<${NOTION_LINK}|Time In/Out Policy — Step-by-Step Guide>`,
           },
         },
-        { type: "divider" },
         {
-          type: "context",
-          elements: [
-            {
-              type: "mrkdwn",
-              text: "💬 *Not sure who to contact?* Just message your designated Operations Manager and they'll point you in the right direction. Welcome aboard — we're glad you're here! 🌏",
-            },
-          ],
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: "If you're ever unsure who to contact, message your designated Operations Manager. Welcome aboard! 🚀",
+          },
         },
       ],
     });
-
-    logger.info(`✅ Welcome DM sent to ${userId}`);
-  } catch (error) {
-    logger.error(`❌ Failed to send welcome DM to ${userId}:`, error.message);
+  } catch (err) {
+    logger.error("Failed to DM new member:", err.message);
   }
 });
 
 (async () => {
   await app.start();
   console.log("🤖 Hire Overseas Welcome Bot is live and ready!");
+  console.log("Now connected to Slack");
+
+  // Health check server so Railway can assign a domain/port
+  const PORT = process.env.PORT || 3000;
+  http.createServer((req, res) => {
+    res.writeHead(200);
+    res.end("Bot is running!");
+  }).listen(PORT, () => {
+    console.log(`Health check server running on port ${PORT}`);
+  });
 })();
