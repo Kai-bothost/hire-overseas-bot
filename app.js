@@ -100,7 +100,12 @@ function registerEvents(app) {
   });
 }
 
+let isRestarting = false;
+
 async function startBot() {
+  if (isRestarting) return;
+  isRestarting = true;
+
   const app = createApp();
   registerEvents(app);
 
@@ -108,34 +113,42 @@ async function startBot() {
     await app.start();
     console.log("🤖 Hire Overseas Welcome Bot is live and ready!");
     console.log("Now connected to Slack");
+    isRestarting = false;
   } catch (err) {
     console.error("Failed to start bot, retrying in 10 seconds...", err.message);
+    isRestarting = false;
     setTimeout(startBot, 10000);
     return;
   }
 
-  // Auto-restart if Slack disconnects
   app.error(async (err) => {
-    console.error("Bot encountered an error, restarting in 10 seconds:", err.message);
-    try {
-      await app.stop();
-    } catch (_) {}
+    console.error("Bot error, restarting in 10 seconds:", err.message);
+    try { await app.stop(); } catch (_) {}
+    isRestarting = false;
     setTimeout(startBot, 10000);
   });
 
-  // Catch unhandled errors that bypass app.error()
   process.on("uncaughtException", async (err) => {
     console.error("Uncaught exception, restarting in 10 seconds:", err.message);
-    try {
-      await app.stop();
-    } catch (_) {}
+    try { await app.stop(); } catch (_) {}
+    isRestarting = false;
     setTimeout(startBot, 10000);
   });
 
   process.on("unhandledRejection", async (err) => {
     console.error("Unhandled rejection, restarting in 10 seconds:", err?.message);
-    try {
-      await app.stop();
-    } catch (_) {}
+    try { await app.stop(); } catch (_) {}
+    isRestarting = false;
     setTimeout(startBot, 10000);
   });
+}
+
+const PORT = process.env.PORT || 3000;
+http.createServer((req, res) => {
+  res.writeHead(200);
+  res.end("Bot is running!");
+}).listen(PORT, () => {
+  console.log(`Health check server running on port ${PORT}`);
+});
+
+startBot();
