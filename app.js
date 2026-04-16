@@ -122,15 +122,20 @@ async function startBot() {
     } catch (_) {}
     setTimeout(startBot, 10000);
   });
-}
 
-// Health check server for Railway
-const PORT = process.env.PORT || 3000;
-http.createServer((req, res) => {
-  res.writeHead(200);
-  res.end("Bot is running!");
-}).listen(PORT, () => {
-  console.log(`Health check server running on port ${PORT}`);
-});
+  // Catch unhandled errors that bypass app.error()
+  process.on("uncaughtException", async (err) => {
+    console.error("Uncaught exception, restarting in 10 seconds:", err.message);
+    try {
+      await app.stop();
+    } catch (_) {}
+    setTimeout(startBot, 10000);
+  });
 
-startBot();
+  process.on("unhandledRejection", async (err) => {
+    console.error("Unhandled rejection, restarting in 10 seconds:", err?.message);
+    try {
+      await app.stop();
+    } catch (_) {}
+    setTimeout(startBot, 10000);
+  });
