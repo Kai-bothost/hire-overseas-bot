@@ -35,12 +35,31 @@ function randomOpener() {
 }
 
 function registerEvents(app) {
-  app.event("member_joined_channel", async ({ event, client, logger }) => {
-    const { user: userId } = event;
+  // DEBUG: log every single event the bot receives, so we can see in Railway
+  // logs whether Slack is sending team_join at all.
+  app.use(async ({ payload, next }) => {
+    if (payload && payload.type) {
+      console.log("📩 Event received:", payload.type);
+    }
+    await next();
+  });
+
+  app.event("team_join", async ({ event, client, logger }) => {
+    console.log("👋 team_join event fired:", JSON.stringify(event));
+
+    const userId = event.user?.id || event.user;
+
+    if (!userId) {
+      logger.error("Could not get user ID from team_join event");
+      return;
+    }
 
     try {
       const info = await client.users.info({ user: userId });
-      if (info.user.is_bot) return;
+      if (info.user.is_bot) {
+        console.log("Skipping bot user:", userId);
+        return;
+      }
     } catch (err) {
       logger.error("Could not fetch user info:", err.message);
       return;
@@ -94,8 +113,9 @@ function registerEvents(app) {
           },
         ],
       });
+      console.log(`✅ Welcome DM sent to new workspace member: ${userId}`);
     } catch (err) {
-      logger.error("Failed to DM new member:", err.message);
+      logger.error("❌ Failed to DM new member:", err.message);
     }
   });
 }
